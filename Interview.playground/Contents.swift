@@ -45,46 +45,39 @@ protocol Shop {
 // TODO: your implementation goes here
 class ShopImpl: Shop {
     
-    var storage: [Product] = []
+    var storage = [String:Product]()
     
     func addNewProduct(product: Product) -> Bool {
-        if storage.contains(where: { elements in
-            elements.id == product.id
-        }) == true {
-            print("Id занят")
-            return false
-        } else {
-            storage.append(product)
-            print("id свободен")
+        if storage[product.id] == nil {
+            storage[product.id] = product
             return true
+        } else {
+            return false
         }
     }
     
     func deleteProduct(id: String) -> Bool {
-        if storage.contains(where: { elements in
-            elements.id == id
-        }) == true {
-            storage.removeAll { elements in
-                elements.id == id
-            }
-            print("удалено")
+        if storage[id] != nil {
+            print("удалено \(storage[id])")
+            storage[id] = nil
+            
             return true
         } else {
-           print("товар по указанному id не найден")
             return false
         }
     }
     
     func listProductsByName(searchString: String) -> Set<String> {
         var newSetter: Set<String> = []
-        let filtr = storage.filter { $0.name.contains(searchString) }
+        
+        let filtr = storage.filter { $0.value.name.contains(searchString) }
         filtr.forEach { elements in
             //сравниваем наименования
-            let prodName = filtr.filter{ $0.name == elements.name}
+            let prodName = filtr.filter{ $0.value.name == elements.value.name}
             if prodName.count > 1 {
-                newSetter.insert("\(elements.producer) - \(elements.name)")
+                newSetter.insert("\(elements.value.producer) - \(elements.value.name)")
             } else {
-                newSetter.insert(elements.name)
+                newSetter.insert(elements.value.name)
             }
         }
         let result = Set(newSetter.prefix(10))
@@ -94,10 +87,11 @@ class ShopImpl: Shop {
     
     func listProductsByProducer(searchString: String) -> [String] {
         var complete: [String] = []
-        let sorted = storage.sorted(by: {$0.id > $1.id}).map({$0})
+        let sorted = storage.sorted(by: {$0.key > $1.key}).map({$0.value})
         sorted.forEach { elements in
             if elements.producer.contains(searchString) {
                 complete.append(elements.name)
+                print("Добавлено \(elements.producer) - \(elements.name)")
             }
         }
         let result = Array(complete.prefix(10))
@@ -143,6 +137,7 @@ func test(lib: Shop) {
     assert(byProducer[1] == "Some Product2" || byProducer[1] == "Some Product3")
     assert(byProducer[2] == "Some Product2" || byProducer[2] == "Some Product3")
     assert(byProducer[3] == "Some Product1")
+    
 }
 
 test(lib: ShopImpl())
